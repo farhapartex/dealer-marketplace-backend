@@ -106,7 +106,40 @@ Run locally
 ./bin/api
 ```
 
-Run tests
+## Testing
+
+Test files are organized in the `tests/` directory by application module.
+
+Run all tests
 ```bash
 go test ./...
+```
+
+Run tests with verbose output
+```bash
+go test ./... -v
+```
+
+Run tests with coverage
+```bash
+go test ./... -cover
+```
+
+Run specific package tests
+```bash
+go test ./tests/user/services/... -v
+```
+
+Generate coverage report
+```bash
+go test ./... -coverprofile=coverage.out
+go tool cover -html=coverage.out
+```
+
+Test directory structure
+```
+tests/
+  user/
+    services/
+      auth_service_test.go
 ```
