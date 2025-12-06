@@ -5,6 +5,7 @@ type CreateUserPayload struct {
 	Email    *string `json:"email" binding:"omitempty,email"`
 	Phone    *string `json:"phone"`
 	Password string  `json:"password" binding:"required,min=6"`
+	UserType string  `json:"user_type" binding:"required,oneof=dealer sub_dealer customer"`
 }
 
 type VerifyCodeRequest struct {

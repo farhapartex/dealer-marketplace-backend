@@ -30,6 +30,7 @@ func (s *AuthService) CreateNewUser(payload dtos.CreateUserPayload) (*dtos.Creat
 		Email:    payload.Email,
 		Mobile:   payload.Phone,
 		Password: string(hashedPassword),
+		UserType: &payload.UserType,
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {

@@ -83,6 +83,8 @@ func TestCreateNewUser_Success(t *testing.T) {
 			payload.Phone,
 			sqlmock.AnyArg(),
 			false,
+			false,
+			sqlmock.AnyArg(),
 			sqlmock.AnyArg(),
 		).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "created_at", "updated_at"}).
@@ -90,7 +92,7 @@ func TestCreateNewUser_Success(t *testing.T) {
 	mock.ExpectCommit()
 
 	mock.ExpectBegin()
-	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "auth_verifications"`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "auth_verification"`)).
 		WithArgs(
 			sqlmock.AnyArg(),
 			userID,
@@ -104,7 +106,9 @@ func TestCreateNewUser_Success(t *testing.T) {
 	result, err := service.CreateNewUser(payload)
 
 	assert.NoError(t, err)
-	assert.NotEqual(t, uuid.Nil, result)
+	assert.NotNil(t, result)
+	assert.NotEmpty(t, result.Code)
+	assert.NotEmpty(t, result.Token)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -130,7 +134,7 @@ func TestCreateNewUser_DatabaseError(t *testing.T) {
 	result, err := service.CreateNewUser(payload)
 
 	assert.Error(t, err)
-	assert.Equal(t, uuid.Nil, result)
+	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "failed to create user")
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -156,14 +160,14 @@ func TestCreateNewUser_AuthVerificationError(t *testing.T) {
 	mock.ExpectCommit()
 
 	mock.ExpectBegin()
-	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "auth_verifications"`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`INSERT INTO "auth_verification"`)).
 		WillReturnError(errors.New("auth verification error"))
 	mock.ExpectRollback()
 
 	result, err := service.CreateNewUser(payload)
 
 	assert.Error(t, err)
-	assert.Equal(t, uuid.Nil, result)
+	assert.Nil(t, result)
 	assert.Contains(t, err.Error(), "failed to create auth verification")
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -178,13 +182,13 @@ func TestVerifyAuthCode_Success(t *testing.T) {
 	code := "ABC123"
 	authID := uuid.New()
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verifications"`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verification"`)).
 		WithArgs(userID, code, 1).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "code", "user_id", "is_used", "expire_at", "created_at"}).
 			AddRow(authID, code, userID, false, time.Now().Add(1*time.Hour), time.Now()))
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "auth_verifications"`)).
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "auth_verification"`)).
 		WithArgs(true, authID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
@@ -210,7 +214,7 @@ func TestVerifyAuthCode_InvalidCode(t *testing.T) {
 	userID := uuid.New()
 	code := "INVALID"
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verifications"`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verification"`)).
 		WithArgs(userID, code, 1).
 		WillReturnError(gorm.ErrRecordNotFound)
 
@@ -231,7 +235,7 @@ func TestVerifyAuthCode_AlreadyUsed(t *testing.T) {
 	code := "ABC123"
 	authID := uuid.New()
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verifications"`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verification"`)).
 		WithArgs(userID, code, 1).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "code", "user_id", "is_used", "expire_at", "created_at"}).
 			AddRow(authID, code, userID, true, time.Now().Add(1*time.Hour), time.Now()))
@@ -253,7 +257,7 @@ func TestVerifyAuthCode_Expired(t *testing.T) {
 	code := "ABC123"
 	authID := uuid.New()
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verifications"`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verification"`)).
 		WithArgs(userID, code, 1).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "code", "user_id", "is_used", "expire_at", "created_at"}).
 			AddRow(authID, code, userID, false, time.Now().Add(-1*time.Hour), time.Now()))
@@ -275,13 +279,13 @@ func TestVerifyAuthCode_UpdateVerificationError(t *testing.T) {
 	code := "ABC123"
 	authID := uuid.New()
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verifications"`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verification"`)).
 		WithArgs(userID, code, 1).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "code", "user_id", "is_used", "expire_at", "created_at"}).
 			AddRow(authID, code, userID, false, time.Now().Add(1*time.Hour), time.Now()))
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "auth_verifications"`)).
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "auth_verification"`)).
 		WithArgs(true, authID).
 		WillReturnError(errors.New("update error"))
 	mock.ExpectRollback()
@@ -303,13 +307,13 @@ func TestVerifyAuthCode_ActivateUserError(t *testing.T) {
 	code := "ABC123"
 	authID := uuid.New()
 
-	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verifications"`)).
+	mock.ExpectQuery(regexp.QuoteMeta(`SELECT * FROM "auth_verification"`)).
 		WithArgs(userID, code, 1).
 		WillReturnRows(sqlmock.NewRows([]string{"id", "code", "user_id", "is_used", "expire_at", "created_at"}).
 			AddRow(authID, code, userID, false, time.Now().Add(1*time.Hour), time.Now()))
 
 	mock.ExpectBegin()
-	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "auth_verifications"`)).
+	mock.ExpectExec(regexp.QuoteMeta(`UPDATE "auth_verification"`)).
 		WithArgs(true, authID).
 		WillReturnResult(sqlmock.NewResult(1, 1))
 	mock.ExpectCommit()
