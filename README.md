@@ -2,6 +2,8 @@
 
 Go-based backend API using PostgreSQL and Redis.
 
+![CI/CD Pipeline](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/ci.yml/badge.svg)
+
 ## Prerequisites
 
 - Docker
@@ -143,3 +145,36 @@ tests/
     services/
       auth_service_test.go
 ```
+
+## CI/CD Pipeline
+
+The project uses GitHub Actions for continuous integration and deployment.
+
+Pipeline triggers
+- Push to main branch
+- Pull requests to main branch
+
+Pipeline stages
+
+**Build Stage:**
+- Checkout code
+- Setup Go environment
+- Cache dependencies
+- Install and verify dependencies
+- Run go vet for code analysis
+- Build application binary
+- Build Docker image
+
+**Test Stage:**
+- Run all unit tests with race detection
+- Generate coverage report
+- Upload coverage artifacts
+
+Workflow file location
+```
+.github/workflows/ci.yml
+```
+
+View pipeline status
+- Check the Actions tab in your GitHub repository
+- Badge status shown at the top of this README
