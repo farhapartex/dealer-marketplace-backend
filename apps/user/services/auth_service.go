@@ -19,10 +19,10 @@ func NewAuthService() *AuthService {
 	return &AuthService{}
 }
 
-func (s *AuthService) CreateNewUser(payload dtos.CreateUserPayload) (uuid.UUID, error) {
+func (s *AuthService) CreateNewUser(payload dtos.CreateUserPayload) (*dtos.CreateUserResponse, error) {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(payload.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("failed to hash password: %w", err)
+		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
 	user := models.User{
@@ -33,14 +33,14 @@ func (s *AuthService) CreateNewUser(payload dtos.CreateUserPayload) (uuid.UUID, 
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
-		return uuid.Nil, fmt.Errorf("failed to create user: %w", err)
+		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
 	code := utils.GenerateVerificationCode()
 
 	expiry, err := parseExpiry(config.AppSettings.AuthCodeExpiry)
 	if err != nil {
-		return uuid.Nil, fmt.Errorf("failed to parse expiry: %w", err)
+		return nil, fmt.Errorf("failed to parse expiry: %w", err)
 	}
 
 	authVerification := models.AuthVerification{
@@ -51,12 +51,20 @@ func (s *AuthService) CreateNewUser(payload dtos.CreateUserPayload) (uuid.UUID, 
 	}
 
 	if err := database.DB.Create(&authVerification).Error; err != nil {
-		return uuid.Nil, fmt.Errorf("failed to create auth verification: %w", err)
+		return nil, fmt.Errorf("failed to create auth verification: %w", err)
+	}
+
+	token, err := utils.GenerateJWTWithExpiry(user.ID, expiry)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate token: %w", err)
 	}
 
 	fmt.Printf("Verification Code: %s\n", code)
 
-	return user.ID, nil
+	return &dtos.CreateUserResponse{
+		Code:  code,
+		Token: token,
+	}, nil
 }
 
 func (s *AuthService) VerifyAuthCode(userID uuid.UUID, code string) error {

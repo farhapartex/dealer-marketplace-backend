@@ -33,3 +33,44 @@ func GenerateJWT(userID uuid.UUID) (string, error) {
 
 	return tokenString, nil
 }
+
+func GenerateJWTWithExpiry(userID uuid.UUID, expiry time.Duration) (string, error) {
+	expirationTime := time.Now().Add(expiry)
+
+	claims := &Claims{
+		UserID: userID,
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(expirationTime),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(config.AppSettings.JWTSecretKey))
+	if err != nil {
+		return "", fmt.Errorf("failed to generate token: %w", err)
+	}
+
+	return tokenString, nil
+}
+
+func VerifyJWT(tokenString string) (uuid.UUID, error) {
+	claims := &Claims{}
+
+	token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return []byte(config.AppSettings.JWTSecretKey), nil
+	})
+
+	if err != nil {
+		return uuid.Nil, fmt.Errorf("failed to parse token: %w", err)
+	}
+
+	if !token.Valid {
+		return uuid.Nil, fmt.Errorf("invalid token")
+	}
+
+	return claims.UserID, nil
+}

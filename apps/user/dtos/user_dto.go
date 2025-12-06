@@ -1,7 +1,5 @@
 package dtos
 
-import "github.com/google/uuid"
-
 type CreateUserPayload struct {
 	Name     string  `json:"name" binding:"required"`
 	Email    *string `json:"email" binding:"omitempty,email"`
@@ -10,8 +8,13 @@ type CreateUserPayload struct {
 }
 
 type VerifyCodeRequest struct {
-	UserID uuid.UUID `json:"user_id" binding:"required"`
-	Code   string    `json:"code" binding:"required,len=6"`
+	Token string `json:"token" binding:"required"`
+	Code  string `json:"code" binding:"required,len=6"`
+}
+
+type CreateUserResponse struct {
+	Code  string `json:"code"`
+	Token string `json:"token"`
 }
 
 type SigninRequest struct {

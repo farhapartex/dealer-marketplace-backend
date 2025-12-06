@@ -5,7 +5,9 @@ import (
 
 	"github.com/farhapartex/dealer-marketplace-be/apps/user/dtos"
 	"github.com/farhapartex/dealer-marketplace-be/apps/user/services"
+	"github.com/farhapartex/dealer-marketplace-be/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type AuthView struct {
@@ -28,7 +30,7 @@ func (v *AuthView) SignupHandler(c *gin.Context) {
 		return
 	}
 
-	_, err := v.authService.CreateNewUser(payload)
+	response, err := v.authService.CreateNewUser(payload)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error":   "Failed to create user",
@@ -38,7 +40,8 @@ func (v *AuthView) SignupHandler(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusCreated, gin.H{
-		"message": "User created successfully. Please check your verification code.",
+		"message": "User created successfully. Please verify your account.",
+		"data":    response,
 	})
 }
 
@@ -52,7 +55,16 @@ func (v *AuthView) VerifyCodeHandler(c *gin.Context) {
 		return
 	}
 
-	if err := v.authService.VerifyAuthCode(payload.UserID, payload.Code); err != nil {
+	userID, err := utils.VerifyJWT(payload.Token)
+	if err != nil || userID == uuid.Nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error":   "Verification failed",
+			"message": "Invalid code",
+		})
+		return
+	}
+
+	if err := v.authService.VerifyAuthCode(userID, payload.Code); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error":   "Verification failed",
 			"message": err.Error(),

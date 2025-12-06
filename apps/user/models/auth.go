@@ -15,3 +15,7 @@ type AuthVerification struct {
 	ExpireAt  time.Time `json:"expire_at" gorm:"not null"`
 	CreatedAt time.Time `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 }
+
+func (AuthVerification) TableName() string {
+	return "auth_verification"
+}
