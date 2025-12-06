@@ -1,0 +1,78 @@
+version: "3.8"
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:18-alpine
+    container_name: dealer_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_NAME:-dealer_db}
+      POSTGRES_USER: ${DB_USER:-devadmin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-test123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - dealer_network
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${DB_USER:-devadmin} -d ${DB_NAME:-dealer_db}",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:8-alpine
+    container_name: dealer_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - dealer_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  # Backend Application
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dealer_backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      - ENCRYPT_KEY=${ENCRYPT_KEY}
+      - AUTH_CODE_EXPIRY=${AUTH_CODE_EXPIRY:-1HR}
+      - DB_NAME=${DB_NAME:-dealer_db}
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=${DB_USER:-devadmin}
+      - DB_PASSWORD=${DB_PASSWORD:-test123}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - dealer_network
+
+networks:
+  dealer_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
