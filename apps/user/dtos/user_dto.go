@@ -28,3 +28,11 @@ type SigninResponse struct {
 	Token   string `json:"token"`
 	Message string `json:"message"`
 }
+
+type UserMeResponse struct {
+	UserID            string  `json:"user_id"`
+	Name              string  `json:"name"`
+	Email             *string `json:"email"`
+	Phone             *string `json:"phone"`
+	IsOnboardComplete bool    `json:"is_onboard_complete"`
+}
