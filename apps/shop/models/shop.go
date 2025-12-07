@@ -8,6 +8,7 @@ import (
 
 type Shop struct {
 	ID            uuid.UUID  `json:"id" gorm:"type:uuid;primaryKey;default:gen_random_uuid()"`
+	UserID        uuid.UUID  `json:"user_id" gorm:"type:uuid;not null"`
 	Name          string     `json:"name" gorm:"not null"`
 	ContactNumber *string    `json:"contact_number"`
 	Logo          *string    `json:"logo"`

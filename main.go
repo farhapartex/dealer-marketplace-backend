@@ -9,6 +9,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/farhapartex/dealer-marketplace-be/apps/shop"
 	"github.com/farhapartex/dealer-marketplace-be/apps/user"
 	"github.com/farhapartex/dealer-marketplace-be/config"
 	"github.com/farhapartex/dealer-marketplace-be/pkg/database"
@@ -47,6 +48,7 @@ func main() {
 	api := router.Group("/api/v1")
 	{
 		user.RegisterRoutes(api)
+		shop.RegisterRoutes(api)
 	}
 
 	srv := &http.Server{
