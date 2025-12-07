@@ -30,9 +30,16 @@ type SigninResponse struct {
 }
 
 type UserMeResponse struct {
-	UserID            string  `json:"user_id"`
-	Name              string  `json:"name"`
-	Email             *string `json:"email"`
-	Phone             *string `json:"phone"`
-	IsOnboardComplete bool    `json:"is_onboard_complete"`
+	UserID            string    `json:"user_id"`
+	Name              string    `json:"name"`
+	Email             *string   `json:"email"`
+	Phone             *string   `json:"phone"`
+	UserType          *string   `json:"user_type"`
+	IsOnboardComplete bool      `json:"is_onboard_complete"`
+	Shop              *ShopInfo `json:"shop,omitempty"`
+}
+
+type ShopInfo struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
