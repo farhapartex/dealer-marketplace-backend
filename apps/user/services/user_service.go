@@ -31,7 +31,6 @@ func (s *UserService) GetUserByID(userID uuid.UUID) (*dtos.UserMeResponse, error
 		IsOnboardComplete: user.IsOnboardComplete,
 	}
 
-	// If user is dealer or sub_dealer, fetch shop details
 	if user.UserType != nil && (*user.UserType == "dealer" || *user.UserType == "sub_dealer") {
 		var shop models.Shop
 		if err := database.DB.Where("user_id = ?", userID).First(&shop).Error; err == nil {

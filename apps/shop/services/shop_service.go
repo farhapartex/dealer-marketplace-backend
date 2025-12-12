@@ -35,6 +35,11 @@ func (s *ShopService) CreateShop(userID uuid.UUID, req *dtos.CreateShopRequest) 
 		Name:          req.Name,
 		ContactNumber: req.ContactNumber,
 		Address:       req.Address,
+		HouseNo:       req.HouseNo,
+		Street:        req.Street,
+		Town:          req.Town,
+		State:         req.State,
+		Country:       req.Country,
 	}
 
 	if err := database.DB.Create(&shop).Error; err != nil {
@@ -48,6 +53,11 @@ func (s *ShopService) CreateShop(userID uuid.UUID, req *dtos.CreateShopRequest) 
 		Name:          shop.Name,
 		ContactNumber: shop.ContactNumber,
 		Address:       shop.Address,
+		HouseNo:       shop.HouseNo,
+		Street:        shop.Street,
+		Town:          shop.Town,
+		State:         shop.State,
+		Country:       shop.Country,
 		Message:       "Shop created successfully",
 	}
 

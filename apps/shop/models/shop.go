@@ -13,6 +13,11 @@ type Shop struct {
 	ContactNumber *string    `json:"contact_number"`
 	Logo          *string    `json:"logo"`
 	Address       *string    `json:"address"`
+	HouseNo       *string    `json:"house_no"`
+	Street        *string    `json:"street"`
+	Town          *string    `json:"town"`
+	State         *string    `json:"state"`
+	Country       *string    `json:"country"`
 	CreatedAt     time.Time  `json:"created_at" gorm:"default:CURRENT_TIMESTAMP"`
 	UpdatedAt     time.Time  `json:"updated_at" gorm:"default:CURRENT_TIMESTAMP"`
 }

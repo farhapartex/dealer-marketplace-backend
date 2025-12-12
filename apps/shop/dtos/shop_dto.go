@@ -7,6 +7,11 @@ type CreateShopRequest struct {
 	Name          string  `json:"name" binding:"required"`
 	ContactNumber *string `json:"contact_number"`
 	Address       *string `json:"address"`
+	HouseNo       *string `json:"house_no"`
+	Street        *string `json:"street"`
+	Town          *string `json:"town"`
+	State         *string `json:"state"`
+	Country       *string `json:"country"`
 }
 
 // CreateShopResponse represents the response after creating a shop
@@ -16,5 +21,10 @@ type CreateShopResponse struct {
 	Name          string    `json:"name"`
 	ContactNumber *string   `json:"contact_number"`
 	Address       *string   `json:"address"`
+	HouseNo       *string   `json:"house_no"`
+	Street        *string   `json:"street"`
+	Town          *string   `json:"town"`
+	State         *string   `json:"state"`
+	Country       *string   `json:"country"`
 	Message       string    `json:"message"`
 }
