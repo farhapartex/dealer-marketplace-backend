@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/farhapartex/dealer-marketplace-be/apps/user/services"
+	"github.com/farhapartex/dealer-marketplace-be/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/google/uuid"
 )
 
 type UserView struct {
@@ -19,20 +19,11 @@ func NewUserView(userService *services.UserService) *UserView {
 }
 
 func (v *UserView) GetMeHandler(c *gin.Context) {
-	userID, exists := c.Get("user_id")
-	if !exists {
+	uid, err := utils.GetUserIDFromContext(c)
+	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{
 			"error":   "Unauthorized",
-			"message": "User ID not found in context",
-		})
-		return
-	}
-
-	uid, ok := userID.(uuid.UUID)
-	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error":   "User not found",
-			"message": "Invalid user",
+			"message": err.Error(),
 		})
 		return
 	}

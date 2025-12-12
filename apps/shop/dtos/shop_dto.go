@@ -6,7 +6,6 @@ import "github.com/google/uuid"
 type CreateShopRequest struct {
 	Name          string  `json:"name" binding:"required"`
 	ContactNumber *string `json:"contact_number"`
-	Address       *string `json:"address"`
 	HouseNo       *string `json:"house_no"`
 	Street        *string `json:"street"`
 	Town          *string `json:"town"`
@@ -20,7 +19,6 @@ type CreateShopResponse struct {
 	UserID        uuid.UUID `json:"user_id"`
 	Name          string    `json:"name"`
 	ContactNumber *string   `json:"contact_number"`
-	Address       *string   `json:"address"`
 	HouseNo       *string   `json:"house_no"`
 	Street        *string   `json:"street"`
 	Town          *string   `json:"town"`

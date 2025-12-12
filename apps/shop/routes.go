@@ -12,10 +12,17 @@ func RegisterRoutes(router *gin.RouterGroup) {
 	shopService := services.NewShopService()
 	shopView := views.NewShopView(shopService)
 
-	// Protected routes - require authentication
+	categoryService := services.NewCategoryService()
+	categoryView := views.NewCategoryView(categoryService)
+
 	shopGroup := router.Group("/shops")
 	shopGroup.Use(middleware.AuthMiddleware())
 	{
 		shopGroup.POST("", shopView.CreateShopHandler)
+	}
+
+	categoryGroup := router.Group("/categories")
+	{
+		categoryGroup.GET("", categoryView.GetCategoriesHandler)
 	}
 }
